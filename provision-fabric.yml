@@ -1,5 +1,5 @@
 ---
-- name: Create a reference tenant with a predefined structure
+- name: Register leaf and spine switches and provision global fabric settings
   hosts: apic
   connection: local
   gather_facts: no
@@ -10,7 +10,7 @@
       - { name: Spine-1, nodeid: 111, serial: TEP-1-103}
 
   tasks:
-  - name: Register leaves and spines
+  - name: Register leaf and spine switches
     aci_rest:
       hostname: '{{ inventory_hostname }}'
       username: '{{ username }}'
