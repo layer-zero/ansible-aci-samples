@@ -1,0 +1,23 @@
+---
+- name: Create a reference tenant with a predefined structure
+  hosts: apic
+  connection: local
+  gather_facts: no
+  vars:
+    tenant_name: Ansible
+
+  tasks:
+  - name: Add the tenant
+    aci_rest:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+      validate_certs: no
+      path: /api/mo/uni.json
+      method: post
+      content:
+        fvTenant:
+          attributes:
+            name: '{{ tenant_name }}'
+            descr: Tenant created by Ansible
+    delegate_to: localhost
