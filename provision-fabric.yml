@@ -5,9 +5,15 @@
   gather_facts: no
   vars:
     fabric_switches:
-      - { name: Leaf-1, nodeid: 101, serial: TEP-1-101}
-      - { name: Leaf-2, nodeid: 102, serial: TEP-1-102}
-      - { name: Spine-1, nodeid: 111, serial: TEP-1-103}
+      - name: Leaf-1
+        nodeid: 101
+        serial: TEP-1-101
+      - name: Leaf-2
+        nodeid: 102
+        serial: TEP-1-102
+      - name: Spine-1
+        nodeid: 111
+        serial: TEP-1-103
 
   tasks:
   - name: Register leaf and spine switches

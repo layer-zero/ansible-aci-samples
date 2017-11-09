@@ -5,6 +5,18 @@
   gather_facts: no
   vars:
     tenant_name: ansible
+    vrfs:
+      - development
+      - testing
+      - acceptance
+      - production
+    bd_names_and_subnets:
+      - name: frontend
+        gateway: 172.16.1.254
+        mask: 24 
+      - name: backend
+        gateway: 172.16.2.254
+        mask: 24 
 
   tasks:
   - name: Create the tenant
@@ -23,11 +35,37 @@
       username: '{{ username }}'
       password: '{{ password }}'
       validate_certs: no
-      vrf: 'ctx_{{ item }}'
+      vrf: 'vrf_{{ item }}'
       tenant: 'tn_{{ tenant_name }}'
     with_items:
-      - development
-      - testing
-      - acceptance
-      - production
+      - '{{ vrfs }}'
+    delegate_to: localhost
+
+  - name: Create the bridge domains
+    aci_bd:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+      validate_certs: no
+      bd: 'bd_{{ item.0 }}_{{ item.1.name }}'
+      vrf: 'vrf_{{ item.0 }}'
+      tenant: 'tn_{{ tenant_name }}'
+    with_nested:
+      - '{{ vrfs }}'
+      - '{{ bd_names_and_subnets}}'
+    delegate_to: localhost
+
+  - name: Attach the subnets to bridge domains
+    aci_bd_subnet:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+      validate_certs: no
+      gateway: '{{ item.1.gateway }}'
+      mask: '{{ item.1.mask }}'
+      bd: 'bd_{{ item.0 }}_{{ item.1.name }}'
+      tenant: 'tn_{{ tenant_name }}'
+    with_nested:
+      - '{{ vrfs }}'
+      - '{{ bd_names_and_subnets}}'
     delegate_to: localhost

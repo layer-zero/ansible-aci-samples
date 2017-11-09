@@ -5,7 +5,7 @@
   gather_facts: no
   vars:
     tenant_name: ansible
-    names_and_ports:
+    contract_names_and_ports:
       - name: web
         ports:
           - 80
@@ -27,7 +27,7 @@
       filter: 'flt_{{ item.name }}'
       tenant: 'tn_{{ tenant_name }}'
     with_items:
-      - '{{ names_and_ports }}'
+      - '{{ contract_names_and_ports }}'
     delegate_to: localhost
 
   - name: Add TCP ports to the filter
@@ -43,7 +43,7 @@
       dst_port: '{{ item.1 }}'
       tenant: 'tn_{{ tenant_name }}'
     with_subelements:
-      - '{{ names_and_ports }}'
+      - '{{ contract_names_and_ports }}'
       - ports
     delegate_to: localhost
 
@@ -56,7 +56,7 @@
       contract: 'ctrct_{{ item.name }}'
       tenant: 'tn_{{ tenant_name }}'
     with_items:
-      - '{{ names_and_ports }}'
+      - '{{ contract_names_and_ports }}'
     delegate_to: localhost
 
   - name: Create the subject
@@ -69,7 +69,7 @@
       contract: 'ctrct_{{ item.name }}'
       tenant: 'tn_{{ tenant_name }}'
     with_items:
-      - '{{ names_and_ports }}'
+      - '{{ contract_names_and_ports }}'
     delegate_to: localhost
 
   - name: Add filter to subject
@@ -83,5 +83,5 @@
       subject: sbj
       tenant: 'tn_{{ tenant_name }}'
     with_items:
-      - '{{ names_and_ports }}'
+      - '{{ contract_names_and_ports }}'
     delegate_to: localhost
