@@ -1,18 +1,33 @@
 ---
-- name: Create a reference tenant with a predefined structure
+- name: Create a reference tenant with a predefined network structure
   hosts: apic
   connection: local
   gather_facts: no
   vars:
-    tenant_name: Ansible
+    tenant_name: ansible
 
   tasks:
-  - name: Add the tenant
+  - name: Create the tenant
     aci_tenant:
       hostname: '{{ inventory_hostname }}'
       username: '{{ username }}'
       password: '{{ password }}'
       validate_certs: no
-      tenant: '{{ tenant_name }}'
+      tenant: 'tn_{{ tenant_name }}'
       description: Tenant created by Ansible
+    delegate_to: localhost
+
+  - name: Create the VRFs
+    aci_vrf:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+      validate_certs: no
+      vrf: 'ctx_{{ item }}'
+      tenant: 'tn_{{ tenant_name }}'
+    with_items:
+      - development
+      - testing
+      - acceptance
+      - production
     delegate_to: localhost

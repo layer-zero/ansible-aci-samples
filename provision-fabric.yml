@@ -25,5 +25,5 @@
             nodeId: '{{ item.nodeid }}'
             serial: '{{ item.serial }}'
     with_items:
-    - '{{ fabric_switches }}'
+      - '{{ fabric_switches }}'
     delegate_to: localhost
