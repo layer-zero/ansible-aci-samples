@@ -1,0 +1,64 @@
+---
+- name: Attach contracts to EPGs
+  hosts: apic
+  connection: local
+  gather_facts: no
+  vars:
+    tenant_name: ansible
+    vrfs:
+      - development
+      - testing
+      - acceptance
+      - production
+    ap_name: webshop
+    epg_names:
+      - web
+      - app
+      - db
+
+  tasks:
+  - name: Attach provided contract to EPGs
+    aci_epg_to_contract:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+      validate_certs: no
+      contract_type: provider
+      contract: 'ctrct_{{ item.1 }}'
+      epg: 'epg_{{ item.1 }}'
+      ap: 'ap_{{ ap_name }}_{{ item.0 }}'
+      tenant: 'tn_{{ tenant_name }}'
+    with_nested:
+      - '{{ vrfs }}'
+      - '{{ epg_names }}'
+    delegate_to: localhost
+
+  - name: Attach consumed contracts to web EPGs
+    aci_epg_to_contract:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+      validate_certs: no
+      contract_type: consumer
+      contract: 'ctrct_{{ epg_names.1 }}'
+      epg: 'epg_{{ epg_names.0 }}'
+      ap: 'ap_{{ ap_name }}_{{ item }}'
+      tenant: 'tn_{{ tenant_name }}'
+    with_items:
+      - '{{ vrfs }}'
+    delegate_to: localhost
+
+  - name: Attach consumed contracts to app EPGs
+    aci_epg_to_contract:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+      validate_certs: no
+      contract_type: consumer
+      contract: 'ctrct_{{ epg_names.2 }}'
+      epg: 'epg_{{ epg_names.1 }}'
+      ap: 'ap_{{ ap_name }}_{{ item }}'
+      tenant: 'tn_{{ tenant_name }}'
+    with_items:
+      - '{{ vrfs }}'
+    delegate_to: localhost
