@@ -1,0 +1,61 @@
+---
+- name: Create application profiles for a reference tenant
+  hosts: apic
+  connection: local
+  gather_facts: no
+  vars:
+    tenant_name: ansible
+    vrfs:
+      - development
+      - testing
+      - acceptance
+      - production
+    ap_name: webshop
+    frontend_epgs:
+      - web
+    backend_epgs:
+      - app
+      - db
+
+  tasks:
+  - name: Create the application profiles
+    aci_ap:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+      validate_certs: no
+      ap: 'ap_{{ ap_name }}_{{ item }}'
+      tenant: 'tn_{{ tenant_name }}'
+    with_items:
+      - '{{ vrfs }}'
+    delegate_to: localhost
+
+  - name: Create the frontend endpoint groups
+    aci_epg:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+      validate_certs: no
+      epg: 'epg_{{ item.1 }}'
+      ap: 'ap_{{ ap_name }}_{{ item.0 }}'
+      bd: 'bd_{{ item.0 }}_frontend'
+      tenant: 'tn_{{ tenant_name }}'
+    with_nested:
+      - '{{ vrfs }}'
+      - '{{ frontend_epgs }}'
+    delegate_to: localhost
+
+  - name: Create the backend endpoint groups
+    aci_epg:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+      validate_certs: no
+      epg: 'epg_{{ item.1 }}'
+      ap: 'ap_{{ ap_name }}_{{ item.0 }}'
+      bd: 'bd_{{ item.0 }}_backend'
+      tenant: 'tn_{{ tenant_name }}'
+    with_nested:
+      - '{{ vrfs }}'
+      - '{{ backend_epgs }}'
+    delegate_to: localhost
