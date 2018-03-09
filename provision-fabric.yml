@@ -14,6 +14,8 @@
       - name: Spine-1
         nodeid: 111
         serial: TEP-1-103
+    ntp_servers:
+      - 192.168.211.1
 
   tasks:
   - name: Register leaf and spine switches
@@ -32,4 +34,93 @@
             serial: '{{ item.serial }}'
     with_items:
       - '{{ fabric_switches }}'
+    delegate_to: localhost
+
+  - name: Create NTP policy
+    aci_rest:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+      validate_certs: no
+      method: post
+      path: /api/node/mo/uni/fabric.json
+      content:
+        datetimePol:
+          attributes:
+            name: ntp_oob
+            adminSt: enabled
+    delegate_to: localhost
+
+  - name: Add NTP server IP addresses to NTP policy
+    aci_rest:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+      validate_certs: no
+      method: post
+      path: /api/node/mo/uni/fabric/time-ntp_oob.json
+      content:
+        datetimeNtpProv:
+          attributes:
+            name: '{{ item }}'
+    with_items:
+      - '{{ ntp_servers }}'
+    delegate_to: localhost
+
+  - name: Associate NTP servers with out-of-band EPG
+    aci_rest:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+      validate_certs: no
+      method: post
+      path: '/api/node/mo/uni/fabric/time-ntp_oob/ntpprov-{{ item }}/rsNtpProvToEpg.json'
+      content:
+        datetimeRsNtpProvToEpg:
+          attributes:
+            tDn: uni/tn-mgmt/mgmtp-default/oob-default
+    with_items:
+      - '{{ ntp_servers }}'
+    delegate_to: localhost
+
+  - name: Create pod policy group
+    aci_rest:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+      validate_certs: no
+      method: post
+      path: /api/node/mo/uni/fabric/funcprof.json
+      content:
+        fabricPodPGrp:
+          attributes:
+            name: podpgrp_layer_zero
+    delegate_to: localhost
+
+  - name: Associate NTP policy with pod policy group
+    aci_rest:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+      validate_certs: no
+      method: post
+      path: /api/node/mo/uni/fabric/funcprof/podpgrp-podpgrp_layer_zero/rsTimePol.json
+      content:
+        fabricRsTimePol:
+          attributes:
+            tnDatetimePolName: ntp_oob
+    delegate_to: localhost
+
+  - name: Apply pod policy group to fabric
+    aci_rest:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+      validate_certs: no
+      method: post
+      path: /api/node/mo/uni/fabric/podprof-default/pods-default-typ-ALL/rspodPGrp.json
+      content:
+        fabricRsPodPGrp:
+          attributes:
+            tDn: uni/fabric/funcprof/podpgrp-podpgrp_layer_zero
     delegate_to: localhost
