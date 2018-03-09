@@ -15,7 +15,7 @@
         nodeid: 111
         serial: TEP-1-103
     ntp_servers:
-      - 192.168.211.1
+      - 192.168.221.1
 
   tasks:
   - name: Register leaf and spine switches
