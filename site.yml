@@ -1,5 +1,6 @@
 ---
 - import_playbook: provision-fabric.yml
+# - import_playbook: create-fabric-foundation.yml
 - import_playbook: create-tenant.yml
 - import_playbook: create-contracts.yml
 - import_playbook: create-application-profiles.yml
