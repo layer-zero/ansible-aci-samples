@@ -1,0 +1,51 @@
+---
+- name: Create access policies
+  hosts: apic
+  connection: local
+  gather_facts: no
+  vars:
+    vpc_domains:
+      - id: 12
+        switch_1: 101
+        switch_2: 102
+
+  tasks:
+  - name: Create vPC domains
+    aci_switch_policy_vpc_protection_group:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+      validate_certs: no
+      name: 'vpc_dom_{{item.id}}'
+      id: '{{ item.id }}'
+      switch_1_id: '{{ item.switch_1 }}'
+      switch_2_id: '{{ item.switch_2 }}'
+    with_items:
+      - '{{ vpc_domains }}'
+    delegate_to: localhost
+
+  - name: Create leaf profiles
+    aci_switch_policy_leaf_profile:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+      validate_certs: no
+      name: 'vpc_pair_{{ item.id }}'
+    with_items:
+      - '{{ vpc_domains }}'
+    delegate_to: localhost
+
+  - name: Attach leaf-selector to leaf profiles
+    aci_switch_leaf_selector:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+      validate_certs: no
+      name: '{{ item.switch_1 }}-{{ item.switch_2 }}'
+      leaf_node_blk: '{{ item.switch_1 }}-{{ item.switch_2 }}'
+      leaf_profile: 'vpc_pair_{{ item.id }}'
+      from: '{{ item.switch_1 }}'
+      to: '{{ item.switch_2 }}'
+    with_items:
+      - '{{ vpc_domains }}'
+    delegate_to: localhost
