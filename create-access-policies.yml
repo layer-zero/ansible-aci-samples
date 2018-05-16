@@ -30,7 +30,7 @@
       username: '{{ username }}'
       password: '{{ password }}'
       validate_certs: no
-      name: 'vpc_pair_{{ item.id }}'
+      name: 'leaf_{{ item.switch_1 }}_{{ item.switch_2 }}'
     with_items:
       - '{{ vpc_domains }}'
     delegate_to: localhost
@@ -41,9 +41,9 @@
       username: '{{ username }}'
       password: '{{ password }}'
       validate_certs: no
-      name: '{{ item.switch_1 }}-{{ item.switch_2 }}'
+      leaf: '{{ item.switch_1 }}-{{ item.switch_2 }}'
       leaf_node_blk: '{{ item.switch_1 }}-{{ item.switch_2 }}'
-      leaf_profile: 'vpc_pair_{{ item.id }}'
+      leaf_profile: 'leaf_{{ item.switch_1 }}_{{ item.switch_2 }}'
       from: '{{ item.switch_1 }}'
       to: '{{ item.switch_2 }}'
     with_items:
