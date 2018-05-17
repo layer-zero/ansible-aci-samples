@@ -11,6 +11,9 @@
       - id: 12
         switch_1: 101
         switch_2: 102
+    bare_metal_vlans:
+      start: 1000
+      end: 1499
 
   tasks:
 
@@ -30,12 +33,12 @@
       username: '{{ username }}'
       password: '{{ password }}'
       validate_certs: no
-      name: '1000-1499'
+      name: '{{ bare_metal_vlans.start }}-{{ bare_metal_vlans.end }}'
       pool: 'phys_bare_metals'
       pool_mode: static
       mode: inherit
-      start: 1000
-      end: 1499
+      start: '{{ bare_metal_vlans.start }}'
+      end: '{{ bare_metal_vlans.end }}'
     delegate_to: localhost
 
   - name: Create vPC domains
