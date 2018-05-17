@@ -1,15 +1,43 @@
 ---
-- name: Create access policies
+- name: Create general access policy structure
   hosts: apic
   connection: local
   gather_facts: no
   vars:
+    leaf_switches:
+      - 101
+      - 102
     vpc_domains:
       - id: 12
         switch_1: 101
         switch_2: 102
 
   tasks:
+
+  - name: Create VLAN pool for bare metal servers
+    aci_vlan_pool:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+      validate_certs: no
+      name: 'phys_bare_metals'
+      mode: static
+    delegate_to: localhost
+
+  - name: Add VLANs to bare metal VLAN pool
+    aci_vlan_pool_encap_block:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+      validate_certs: no
+      name: '1000-1499'
+      pool: 'phys_bare_metals'
+      pool_mode: static
+      mode: inherit
+      start: 1000
+      end: 1499
+    delegate_to: localhost
+
   - name: Create vPC domains
     aci_switch_policy_vpc_protection_group:
       hostname: '{{ inventory_hostname }}'
@@ -24,7 +52,7 @@
       - '{{ vpc_domains }}'
     delegate_to: localhost
 
-  - name: Create leaf profiles
+  - name: Create leaf profiles for vPC pairs
     aci_switch_policy_leaf_profile:
       hostname: '{{ inventory_hostname }}'
       username: '{{ username }}'
@@ -48,4 +76,30 @@
       to: '{{ item.switch_2 }}'
     with_items:
       - '{{ vpc_domains }}'
+    delegate_to: localhost
+
+  - name: Create leaf profiles for individual switches
+    aci_switch_policy_leaf_profile:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+      validate_certs: no
+      name: 'leaf_{{ item }}'
+    with_items:
+      - '{{ leaf_switches }}'
+    delegate_to: localhost
+
+  - name: Attach leaf-selector to leaf profiles
+    aci_switch_leaf_selector:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ username }}'
+      password: '{{ password }}'
+      validate_certs: no
+      leaf: '{{ item }}'
+      leaf_node_blk: '{{ item }}'
+      leaf_profile: 'leaf_{{ item }}'
+      from: '{{ item }}'
+      to: '{{ item }}'
+    with_items:
+      - '{{ leaf_switches }}'
     delegate_to: localhost
