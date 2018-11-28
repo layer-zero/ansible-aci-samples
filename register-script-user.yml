@@ -4,7 +4,6 @@
   connection: local
   gather_facts: no
   vars:
-    script_user: ansible
     certfile: ansible.crt
 
   tasks:

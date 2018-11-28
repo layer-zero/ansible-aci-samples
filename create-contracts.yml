@@ -21,8 +21,8 @@
   - name: Create the filter
     aci_filter:
       hostname: '{{ inventory_hostname }}'
-      username: '{{ username }}'
-      password: '{{ password }}'
+      username: '{{ script_user }}'
+      private_key: '{{ keyfile }}'
       validate_certs: no
       filter: 'flt_{{ item.name }}'
       tenant: 'tn_{{ tenant_name }}'
@@ -33,8 +33,8 @@
   - name: Add TCP ports to the filter
     aci_filter_entry:
       hostname: '{{ inventory_hostname }}'
-      username: '{{ username }}'
-      password: '{{ password }}'
+      username: '{{ script_user }}'
+      private_key: '{{ keyfile }}'
       validate_certs: no
       filter: 'flt_{{ item.0.name }}'
       entry: 'tcp_port_{{ item.1 }}'
@@ -50,8 +50,8 @@
   - name: Create the contract
     aci_contract:
       hostname: '{{ inventory_hostname }}'
-      username: '{{ username }}'
-      password: '{{ password }}'
+      username: '{{ script_user }}'
+      private_key: '{{ keyfile }}'
       validate_certs: no
       contract: 'ctrct_{{ item.name }}'
       tenant: 'tn_{{ tenant_name }}'
@@ -62,8 +62,8 @@
   - name: Create the subject
     aci_contract_subject:
       hostname: '{{ inventory_hostname }}'
-      username: '{{ username }}'
-      password: '{{ password }}'
+      username: '{{ script_user }}'
+      private_key: '{{ keyfile }}'
       validate_certs: no
       subject: sbj
       contract: 'ctrct_{{ item.name }}'
@@ -75,8 +75,8 @@
   - name: Add filter to subject
     aci_contract_subject_to_filter:
       hostname: '{{ inventory_hostname }}'
-      username: '{{ username }}'
-      password: '{{ password }}'
+      username: '{{ script_user }}'
+      private_key: '{{ keyfile }}'
       validate_certs: no
       filter: 'flt_{{ item.name }}'
       contract: 'ctrct_{{ item.name }}'
