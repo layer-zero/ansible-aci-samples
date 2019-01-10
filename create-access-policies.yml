@@ -61,7 +61,53 @@
       domain_type: phys
       pool: phys_bare_metal
       pool_allocation_mode: static
-    delegate_to: localhost      
+    delegate_to: localhost
+
+  - name: Create attachable access entity profile for bare metal servers
+    aci_aep:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ script_user }}'
+      private_key: '{{ keyfile }}'
+      validate_certs: no
+      name: aep_bare_metal
+    delegate_to: localhost
+
+  - name: Attach physical domain to attachable entity profile
+    aci_aep_to_domain:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ script_user }}'
+      private_key: '{{ keyfile }}'
+      validate_certs: no
+      aep: aep_bare_metal
+      domain: dom_bare_metal
+      domain_type: phys
+    delegate_to: localhost
+
+  - name: Create policy to disable LLDP
+    aci_interface_policy_lldp:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ script_user }}'
+      private_key: '{{ keyfile }}'
+      validate_certs: no
+      name: lldp_off
+      receive_state: no
+      transmit_state: no
+    delegate_to: localhost
+
+  - name: Create policy to enable CDP
+    aci_rest:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ script_user }}'
+      private_key: '{{ keyfile }}'
+      validate_certs: no
+      method: post
+      path: '/api/mo/uni/infra.json'
+      content:
+        cdpIfPol:
+          attributes:
+            name: cdp_on
+            adminSt: enabled
+    delegate_to: localhost
 
   - name: Create vPC domains
     aci_switch_policy_vpc_protection_group:
