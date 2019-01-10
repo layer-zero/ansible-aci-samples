@@ -28,7 +28,6 @@
       tenant: 'tn_{{ tenant_name }}'
     with_items:
       - '{{ contract_names_and_ports }}'
-    delegate_to: localhost
 
   - name: Add TCP ports to the filter
     aci_filter_entry:
@@ -45,7 +44,6 @@
     with_subelements:
       - '{{ contract_names_and_ports }}'
       - ports
-    delegate_to: localhost
 
   - name: Create the contract
     aci_contract:
@@ -57,7 +55,6 @@
       tenant: 'tn_{{ tenant_name }}'
     with_items:
       - '{{ contract_names_and_ports }}'
-    delegate_to: localhost
 
   - name: Create the subject
     aci_contract_subject:
@@ -70,7 +67,6 @@
       tenant: 'tn_{{ tenant_name }}'
     with_items:
       - '{{ contract_names_and_ports }}'
-    delegate_to: localhost
 
   - name: Add filter to subject
     aci_contract_subject_to_filter:
@@ -84,4 +80,3 @@
       tenant: 'tn_{{ tenant_name }}'
     with_items:
       - '{{ contract_names_and_ports }}'
-    delegate_to: localhost

@@ -32,4 +32,3 @@
             serial: '{{ item.serial }}'
     with_items:
       - '{{ fabric_switches }}'
-    delegate_to: localhost

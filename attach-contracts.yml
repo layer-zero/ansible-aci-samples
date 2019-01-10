@@ -31,7 +31,6 @@
     with_nested:
       - '{{ vrfs }}'
       - '{{ epg_names }}'
-    delegate_to: localhost
 
   - name: Attach consumed contracts to web EPGs
     aci_epg_to_contract:
@@ -46,7 +45,6 @@
       tenant: 'tn_{{ tenant_name }}'
     with_items:
       - '{{ vrfs }}'
-    delegate_to: localhost
 
   - name: Attach consumed contracts to app EPGs
     aci_epg_to_contract:
@@ -61,4 +59,3 @@
       tenant: 'tn_{{ tenant_name }}'
     with_items:
       - '{{ vrfs }}'
-    delegate_to: localhost
