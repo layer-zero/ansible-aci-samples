@@ -1,0 +1,46 @@
+- name: Create static mappings for an EPG
+  hosts: apic
+  connection: local
+  gather_facts: no
+ 
+  vars:
+    tenant_name: ansible
+    ap_name: webshop_production
+    epgs:
+     - epg_name: web
+       vlan_tag: 101
+     - epg_name: app
+       vlan_tag: 102
+     - epg_name: db
+       vlan_tag: 103
+    pod: 1
+    switches:
+      - 101
+      - 102
+    ports:
+      - 1/1
+      - 1/2
+      - 1/3
+
+  tasks:
+  - name: Create static mappings
+    aci_static_binding_to_epg:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ script_user }}'
+      private_key: '{{ keyfile }}'
+      validate_certs: no
+      tenant: 'tn_{{ tenant_name }}'
+      ap: 'ap_{{ ap_name }}'
+      epg: 'epg_{{ item.2.epg_name }}'
+      encap_id: '{{ item.2.vlan_tag }}'
+      interface_type: switch_port
+      interface_mode: trunk
+      deploy_immediacy: immediate
+      pod_id: '{{ pod }}'
+      leafs: '{{ item.0 }}'
+      interface: '{{ item.1 }}'
+      state: present
+    with_nested:
+     - '{{ switches }}'
+     - '{{ ports }}'
+     - '{{ epgs }}'
