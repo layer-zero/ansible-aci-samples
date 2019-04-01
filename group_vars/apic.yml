@@ -1,0 +1,5 @@
+---
+# file: group_vars/apic.yml
+
+script_user: ansible
+keyfile: ansible.key

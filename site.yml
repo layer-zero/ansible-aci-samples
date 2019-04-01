@@ -1,9 +1,9 @@
 ---
-- import_playbook: register-script-user.yml
-- import_playbook: provision-fabric.yml
-# - import_playbook: create-fabric-foundation.yml
-- import_playbook: create-access-policies.yml
-- import_playbook: create-tenant.yml
-- import_playbook: create-contracts.yml
-- import_playbook: create-application-profiles.yml
-- import_playbook: attach-contracts.yml
+# file: site.yml
+- hosts: apic
+  gather_facts: no
+  connection: local
+  roles:
+    - common
+    - fabric
+    - tenants

@@ -1,0 +1,38 @@
+---
+# file: roles/tenants/vars/main.yml
+
+tenant_name: ansible
+
+vrfs:
+  - development
+  - testing
+  - acceptance
+  - production
+
+bd_names_and_subnets:
+  - name: frontend
+    gateway: 172.16.1.254
+    mask: 24 
+  - name: backend
+    gateway: 172.16.2.254
+    mask: 24 
+
+ap_name: webshop
+
+frontend_epgs:
+  - web
+backend_epgs:
+  - app
+  - db
+
+contract_names_and_ports:
+  - name: web
+    ports:
+      - 80
+      - 443
+  - name: app
+    ports:
+      - 8080
+  - name: db
+    ports:
+      - 1433

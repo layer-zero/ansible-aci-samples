@@ -1,0 +1,61 @@
+---
+# file: roles/common/tasks/main.yml
+
+- name: Delete the script user if present 
+  aci_aaa_user:
+    hostname: '{{ inventory_hostname }}'
+    username: '{{ username }}'
+    password: '{{ password }}'
+    validate_certs: no
+    aaa_user: '{{ script_user }}'
+    state: absent
+
+- name: (Re)create the script user
+  aci_aaa_user:
+    hostname: '{{ inventory_hostname }}'
+    username: '{{ username }}'
+    password: '{{ password }}'
+    validate_certs: no
+    aaa_user: '{{ script_user }}'
+    aaa_password: "{{ lookup('password', '/dev/null') }}"
+    enabled: yes
+    expires: no
+    expiration: never
+    certificate_name: ansible
+
+- name: Attach X.509 certificate to script user
+  aci_aaa_user_certificate:
+    hostname: '{{ inventory_hostname }}'
+    username: '{{ username }}'
+    password: '{{ password }}'
+    validate_certs: no
+    aaa_user: '{{ script_user }}'
+    certificate_name: ansible
+    certificate: "{{ lookup('file', certfile) }}"
+
+- name: Attach security domain "all" to script user
+  aci_rest:
+    hostname: '{{ inventory_hostname }}'
+    username: '{{ username }}'
+    password: '{{ password }}'
+    validate_certs: no
+    method: post
+    path: '/api/mo/uni/userext/user-{{ script_user }}.json'
+    content:
+      aaaUserDomain:
+        attributes:
+          name: all
+
+- name: Set admin role and write privilege for domain "all".
+  aci_rest:
+    hostname: '{{ inventory_hostname }}'
+    username: '{{ username }}'
+    password: '{{ password }}'
+    validate_certs: no
+    method: post
+    path: '/api/mo/uni/userext/user-{{ script_user }}/userdomain-all.json'
+    content:
+      aaaUserRole:
+        attributes:
+          name: admin
+          privType: writePriv

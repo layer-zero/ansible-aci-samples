@@ -1,0 +1,40 @@
+---
+# file: roles/fabric/vars/main.yml
+
+fabric_switches:
+  dcloud:
+    - name: leaf-1
+      nodeid: 101
+      serial: TEP-1-101
+    - name: leaf-2
+      nodeid: 102
+      serial: TEP-1-102
+    - name: spine-1
+      nodeid: 103
+      serial: TEP-1-103
+    - name: spine-2
+      nodeid: 104
+      serial: TEP-1-104
+  sandbox:
+    - name: leaf-1
+      nodeid: 101
+      serial: TEP-1-101
+    - name: leaf-2
+      nodeid: 102
+      serial: TEP-1-102
+    - name: spine-1
+      nodeid: 201
+      serial: TEP-1-103
+
+leaf_switches:
+  - 101
+  - 102
+
+vpc_domains:
+  - id: 12
+    switch_1: 101
+    switch_2: 102
+
+bare_metal_vlans:
+  start: 1000
+  end: 1499

@@ -1,0 +1,65 @@
+---
+# file: roles/tenants/tasks/contracts.yml
+
+- name: Create the filter
+  aci_filter:
+    hostname: '{{ inventory_hostname }}'
+    username: '{{ script_user }}'
+    private_key: '{{ keyfile }}'
+    validate_certs: no
+    filter: 'flt_{{ item.name }}'
+    tenant: 'tn_{{ tenant_name }}'
+  with_items:
+    - '{{ contract_names_and_ports }}'
+
+- name: Add TCP ports to the filter
+  aci_filter_entry:
+    hostname: '{{ inventory_hostname }}'
+    username: '{{ script_user }}'
+    private_key: '{{ keyfile }}'
+    validate_certs: no
+    filter: 'flt_{{ item.0.name }}'
+    entry: 'tcp_port_{{ item.1 }}'
+    ether_type: ip
+    ip_protocol: tcp
+    dst_port: '{{ item.1 }}'
+    tenant: 'tn_{{ tenant_name }}'
+  with_subelements:
+    - '{{ contract_names_and_ports }}'
+    - ports
+
+- name: Create the contract
+  aci_contract:
+    hostname: '{{ inventory_hostname }}'
+    username: '{{ script_user }}'
+    private_key: '{{ keyfile }}'
+    validate_certs: no
+    contract: 'ctrct_{{ item.name }}'
+    tenant: 'tn_{{ tenant_name }}'
+  with_items:
+    - '{{ contract_names_and_ports }}'
+
+- name: Create the subject
+  aci_contract_subject:
+    hostname: '{{ inventory_hostname }}'
+    username: '{{ script_user }}'
+    private_key: '{{ keyfile }}'
+    validate_certs: no
+    subject: sbj
+    contract: 'ctrct_{{ item.name }}'
+    tenant: 'tn_{{ tenant_name }}'
+  with_items:
+    - '{{ contract_names_and_ports }}'
+
+- name: Add filter to subject
+  aci_contract_subject_to_filter:
+    hostname: '{{ inventory_hostname }}'
+    username: '{{ script_user }}'
+    private_key: '{{ keyfile }}'
+    validate_certs: no
+    filter: 'flt_{{ item.name }}'
+    contract: 'ctrct_{{ item.name }}'
+    subject: sbj
+    tenant: 'tn_{{ tenant_name }}'
+  with_items:
+    - '{{ contract_names_and_ports }}'

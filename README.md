@@ -10,8 +10,6 @@ Then add a hosts file with the following structure:
 [apic:vars]
 username = <your apic username>
 password = <your apic password>
-script_user = ansible
-keyfile = ansible.key
 
 [apic]
 <your apic fqdn or ip address>

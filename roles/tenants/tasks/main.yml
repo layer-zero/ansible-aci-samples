@@ -1,0 +1,20 @@
+---
+# file: roles/tenants/tasks/main.yml
+
+- name: Create the tenant
+  aci_tenant:
+    hostname: '{{ inventory_hostname }}'
+    username: '{{ script_user }}'
+    private_key: '{{ keyfile }}'
+    validate_certs: no
+    tenant: 'tn_{{ tenant_name }}'
+    description: Tenant created by Ansible
+
+- name: Create VRFs and bridge domains
+  include_tasks: network.yml
+
+- name: Create contracts
+  include_tasks: contracts.yml
+
+- name: Create application profiles and attach contracts
+  include_tasks: application_profiles.yml
