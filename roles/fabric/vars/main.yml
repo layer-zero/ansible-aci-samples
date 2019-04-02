@@ -38,3 +38,11 @@ vpc_domains:
 bare_metal_vlans:
   start: 1000
   end: 1499
+
+vpcs:
+  - pair: [101, 102]
+    device_name: ucs-fi-a
+    ports: [33, 34]
+  - pair: [101, 102]
+    device_name: ucs-fi-b
+    ports: [35, 36]
