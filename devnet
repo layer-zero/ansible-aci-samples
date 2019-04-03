@@ -1,7 +1,0 @@
-[apic:vars]
-username = admin
-password = ciscopsdt
-env = sandbox
-
-[apic]
-10.10.20.70
