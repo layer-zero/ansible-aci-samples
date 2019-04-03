@@ -4,6 +4,6 @@
   gather_facts: no
   connection: local
   roles:
-    - common
-    - fabric
+#    - common
+#    - fabric
     - tenants

@@ -36,3 +36,11 @@ contract_names_and_ports:
   - name: db
     ports:
       - 1433
+
+initial_vlan: 1000
+
+vpcs:
+  - leafs: 101-102
+    device: ucs-fi-a
+  - leafs: 101-102
+    device: ucs-fi-b
