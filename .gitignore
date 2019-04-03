@@ -3,5 +3,5 @@ hosts
 *.retry
 *.key
 *.crt
-dcloud*
 sandbox*
+devnet*
