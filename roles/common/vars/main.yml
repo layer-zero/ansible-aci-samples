@@ -2,3 +2,6 @@
 # file: roles/common/vars/main.yml
 
 certfile: ansible.crt
+
+ntp_servers:
+  - 192.168.11.254

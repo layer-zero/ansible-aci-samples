@@ -1,0 +1,85 @@
+---
+# file: roles/common/tasks/ntp.yml
+
+- name: Create NTP policy
+  aci_rest:
+    hostname: '{{ inventory_hostname }}'
+    username: '{{ script_user }}'
+    private_key: '{{ keyfile }}'
+    validate_certs: no
+    method: post
+    path: /api/node/mo/uni/fabric.json
+    content:
+      datetimePol:
+        attributes:
+          name: ntp_oob
+          adminSt: enabled
+
+- name: Add NTP server IP addresses to NTP policy
+  aci_rest:
+    hostname: '{{ inventory_hostname }}'
+    username: '{{ script_user }}'
+    private_key: '{{ keyfile }}'
+    validate_certs: no
+    method: post
+    path: /api/node/mo/uni/fabric/time-ntp_oob.json
+    content:
+      datetimeNtpProv:
+        attributes:
+          name: '{{ item }}'
+  with_items:
+    - '{{ ntp_servers }}'
+
+- name: Associate NTP servers with out-of-band EPG
+  aci_rest:
+    hostname: '{{ inventory_hostname }}'
+    username: '{{ script_user }}'
+    private_key: '{{ keyfile }}'
+    validate_certs: no
+    method: post
+    path: '/api/node/mo/uni/fabric/time-ntp_oob/ntpprov-{{ item }}/rsNtpProvToEpg.json'
+    content:
+      datetimeRsNtpProvToEpg:
+        attributes:
+          tDn: uni/tn-mgmt/mgmtp-default/oob-default
+  with_items:
+    - '{{ ntp_servers }}'
+
+- name: Create pod policy group
+  aci_rest:
+    hostname: '{{ inventory_hostname }}'
+    username: '{{ script_user }}'
+    private_key: '{{ keyfile }}'
+    validate_certs: no
+    method: post
+    path: /api/node/mo/uni/fabric/funcprof.json
+    content:
+      fabricPodPGrp:
+        attributes:
+          name: podpgrp_layer_zero
+
+- name: Associate NTP policy with pod policy group
+  aci_rest:
+    hostname: '{{ inventory_hostname }}'
+    username: '{{ script_user }}'
+    private_key: '{{ keyfile }}'
+    validate_certs: no
+    method: post
+    path: /api/node/mo/uni/fabric/funcprof/podpgrp-podpgrp_layer_zero/rsTimePol.json
+    content:
+      fabricRsTimePol:
+        attributes:
+          tnDatetimePolName: ntp_oob
+
+- name: Apply pod policy group to fabric
+  aci_rest:
+    hostname: '{{ inventory_hostname }}'
+    username: '{{ script_user }}'
+    private_key: '{{ keyfile }}'
+    validate_certs: no
+    method: post
+    path: /api/node/mo/uni/fabric/podprof-default/pods-default-typ-ALL/rspodPGrp.json
+    content:
+      fabricRsPodPGrp:
+        attributes:
+          tDn: uni/fabric/funcprof/podpgrp-podpgrp_layer_zero
