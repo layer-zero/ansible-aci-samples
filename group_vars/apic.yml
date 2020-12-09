@@ -3,3 +3,5 @@
 
 script_user: ansible
 keyfile: ansible.key
+ansible_python_interpreter: $(which python)
+
