@@ -1,0 +1,4 @@
+---
+# file: roles/common/meta/main.yml
+collections:
+  - cisco.aci
