@@ -60,5 +60,15 @@
           name: admin
           privType: writePriv
 
+- name: Create a snapshot before deployment
+  aci_config_snapshot:
+    hostname: '{{ inventory_hostname }}'
+    username: '{{ script_user }}'
+    private_key: '{{ keyfile }}'
+    validate_certs: no
+    export_policy: AnsibleSnapshots
+    max_count: 10
+    description: Snapshot created by Ansible
+
 - name: Configure NTP for the fabric
   include_tasks: ntp.yml
