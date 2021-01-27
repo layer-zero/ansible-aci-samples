@@ -4,7 +4,7 @@
   gather_facts: no
  
   vars:
-    tenant_name: ansible
+    tenant_name: layer_zero
     ap_name: webshop_production
     epgs:
      - epg_name: web
