@@ -1,7 +1,7 @@
 ---
 # file: roles/tenants/vars/main.yml
 
-tenant_name: ansible
+tenant_name: layer_zero
 
 vrfs:
   - development

@@ -131,7 +131,7 @@
     username: '{{ script_user }}'
     private_key: '{{ keyfile }}'
     validate_certs: no
-    name: 'leaf_pair_{{ item.switch_1 }}_{{ item.switch_2 }}'
+    name: 'swp_leaf_pair_{{ item.switch_1 }}_{{ item.switch_2 }}'
   with_items:
     - '{{ vpc_domains }}'
 
@@ -143,9 +143,30 @@
     validate_certs: no
     leaf: '{{ item.switch_1 }}-{{ item.switch_2 }}'
     leaf_node_blk: '{{ item.switch_1 }}-{{ item.switch_2 }}'
-    leaf_profile: 'leaf_pair_{{ item.switch_1 }}_{{ item.switch_2 }}'
+    leaf_profile: 'swp_leaf_pair_{{ item.switch_1 }}_{{ item.switch_2 }}'
     from: '{{ item.switch_1 }}'
     to: '{{ item.switch_2 }}'
+  with_items:
+    - '{{ vpc_domains }}'
+
+- name: Create interface profiles for vPC pairs
+  aci_interface_policy_leaf_profile:
+    hostname: '{{ inventory_hostname }}'
+    username: '{{ script_user }}'
+    private_key: '{{ keyfile }}'
+    validate_certs: no
+    name: 'ifp_leaf_pair_{{ item.switch_1 }}_{{ item.switch_2 }}'
+  with_items:
+    - '{{ vpc_domains }}'
+
+- name: Attach interface profiles to switch profiles for vPC pairs
+  aci_interface_selector_to_switch_policy_leaf_profile:
+    hostname: '{{ inventory_hostname }}'
+    username: '{{ script_user }}'
+    private_key: '{{ keyfile }}'
+    validate_certs: no
+    interface_profile_name: 'ifp_leaf_pair_{{ item.switch_1 }}_{{ item.switch_2 }}'
+    leaf_profile: 'swp_leaf_pair_{{ item.switch_1 }}_{{ item.switch_2 }}'
   with_items:
     - '{{ vpc_domains }}'
 
@@ -155,7 +176,7 @@
     username: '{{ script_user }}'
     private_key: '{{ keyfile }}'
     validate_certs: no
-    name: 'leaf_switch_{{ item }}'
+    name: 'swp_leaf_switch_{{ item }}'
   with_items:
     - '{{ leaf_switches }}'
 
@@ -167,9 +188,30 @@
     validate_certs: no
     leaf: '{{ item }}'
     leaf_node_blk: '{{ item }}'
-    leaf_profile: 'leaf_switch_{{ item }}'
+    leaf_profile: 'swp_leaf_switch_{{ item }}'
     from: '{{ item }}'
     to: '{{ item }}'
+  with_items:
+    - '{{ leaf_switches }}'
+
+- name: Create interface profiles for individual switches
+  aci_interface_policy_leaf_profile:
+    hostname: '{{ inventory_hostname }}'
+    username: '{{ script_user }}'
+    private_key: '{{ keyfile }}'
+    validate_certs: no
+    name: 'ifp_leaf_switch_{{ item }}'
+  with_items:
+    - '{{ leaf_switches }}'
+
+- name: Attach interface profiles to switch profiles for individual switches
+  aci_interface_selector_to_switch_policy_leaf_profile:
+    hostname: '{{ inventory_hostname }}'
+    username: '{{ script_user }}'
+    private_key: '{{ keyfile }}'
+    validate_certs: no
+    interface_profile_name: 'ifp_leaf_switch_{{ item }}'
+    leaf_profile: 'swp_leaf_switch_{{ item }}'
   with_items:
     - '{{ leaf_switches }}'
 
@@ -180,22 +222,12 @@
     private_key: '{{ keyfile }}'
     validate_certs: no
     lag_type: node
-    policy_group: 'vpc_to_{{ item.device_name }}'
+    policy_group: 'ipg_vpc_{{ item.device_name }}'
     description: 'vPC to {{ item.device_name }}'
     aep: aep_bare_metal
     cdp_policy: ifpol_cdp_on
     lldp_policy: ifpol_lldp_off
     port_channel_policy: ifpol_lacp_active
-  with_items:
-    - '{{ vpcs }}'
-
-- name: Create interface profiles for vPCs
-  aci_interface_policy_leaf_profile:
-    hostname: '{{ inventory_hostname }}'
-    username: '{{ script_user }}'
-    private_key: '{{ keyfile }}'
-    validate_certs: no
-    name: 'ports_to_{{ item.device_name }}'
   with_items:
     - '{{ vpcs }}'
 
@@ -205,8 +237,8 @@
     username: '{{ script_user }}'
     private_key: '{{ keyfile }}'
     validate_certs: no
-    leaf_interface_profile: 'ports_to_{{ item.0.device_name }}'
-    policy_group: 'vpc_to_{{ item.0.device_name }}'
+    leaf_interface_profile: 'ifp_leaf_pair_{{ item.0.pair.0 }}_{{ item.0.pair.1 }}'
+    policy_group: 'ipg_vpc_{{ item.0.device_name }}'
     interface_type: vpc
     leaf_port_blk: 'port_{{ item.1 }}'
     access_port_selector: 'port_{{ item.1 }}'
@@ -215,14 +247,3 @@
   with_subelements:
     - '{{ vpcs }}'
     -  ports
-
-- name: Attach interface profiles to switch profiles
-  aci_interface_selector_to_switch_policy_leaf_profile:
-    hostname: '{{ inventory_hostname }}'
-    username: '{{ script_user }}'
-    private_key: '{{ keyfile }}'
-    validate_certs: no
-    interface_profile_name: 'ports_to_{{ item.device_name }}'
-    leaf_profile: 'leaf_pair_{{ item.pair.0 }}_{{ item.pair.1 }}'
-  with_items:
-    - '{{ vpcs }}'

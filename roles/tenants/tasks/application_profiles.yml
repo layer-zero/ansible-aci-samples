@@ -117,7 +117,7 @@
     deploy_immediacy: immediate
     pod_id: 1
     leafs: '{{ item.0.leafs }}'
-    interface: 'vpc_to_{{ item.0.device }}'
+    interface: 'ipg_vpc_{{ item.0.device }}'
   loop: '{{ vpcs | product(vrfs, epgs) | list }}'
   loop_control:
     index_var: vlan_index
