@@ -17,16 +17,12 @@
       path: /api/node/class/fabricNode.json
     register: nodes_result
   
-  - name: Create node list data structure and add keys
+  - name: Create node dictionary data structure and add keys
     set_fact:
-      nodes: "{{ nodes | default([]) + [{ 'dn': item.fabricNode.attributes.dn,
+      nodes: "{{ nodes | default({}) | combine ({ item.fabricNode.attributes.dn: {
                                           'serial': item.fabricNode.attributes.serial,
-                                          'name': item.fabricNode.attributes.name }] }}"
+                                          'name': item.fabricNode.attributes.name } }) }}"
     loop: '{{ nodes_result.imdata}}'
-
-  - name: Print node list
-    debug:
-      var: nodes
 
   - name: Get power supplies
     aci_rest:
@@ -35,12 +31,26 @@
       private_key: '{{ keyfile }}'
       validate_certs: no
       method: get
-      path: '/api/node/mo/{{ item.dn }}/sys/ch.json?rsp-subtree=full&rsp-subtree-class=eqptPsu'
-    loop: '{{ nodes }}'
+      path: '/api/node/mo/{{ item.key }}/sys/ch.json?rsp-subtree=full&rsp-subtree-class=eqptPsu'
+    loop: '{{ nodes | dict2items }}'
     register: ps_results
 
-  - name: Print results
-    debug:
-      var: item
-    loop: '{{ ps_results.results }}'
+  # - name: Print results
+  #   debug:
+  #     var: ps_results.results[0]
  
+  # - name: Print results
+  #   debug:
+  #     msg: "Node: {{ item.item.key }} PSUs: {{ item | json_query('imdata[0].eqptCh.children[*].eqptPsuSlot.children[0].eqptPsu.attributes.ser') }}"
+  #   loop: "{{ ps_results.results }}"
+
+  - name: Add power supplies to node dictionary data
+    set_fact:
+      nodes: "{{ nodes | combine ({ item.item.key: {'psu-serials': item 
+                | json_query('imdata[0].eqptCh.children[*].eqptPsuSlot.children[0].eqptPsu.attributes.ser')} }
+                , recursive=True ) }}"
+    loop: "{{ ps_results.results }}"
+
+  - name: Print node dictionary
+    debug:
+      var: nodes
