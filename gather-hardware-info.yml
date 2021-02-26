@@ -20,9 +20,11 @@
   - name: Create node dictionary data structure and add keys
     set_fact:
       nodes: "{{ nodes | default({}) | combine ({ item.fabricNode.attributes.dn: {
+                                          'id': item.fabricNode.attributes.id,
                                           'serial': item.fabricNode.attributes.serial,
                                           'name': item.fabricNode.attributes.name } }) }}"
     loop: '{{ nodes_result.imdata}}'
+    no_log: True
 
   - name: Get power supplies
     aci_rest:
@@ -35,21 +37,33 @@
     loop: '{{ nodes | dict2items }}'
     register: ps_results
 
-  # - name: Print results
-  #   debug:
-  #     var: ps_results.results[0]
- 
-  # - name: Print results
-  #   debug:
-  #     msg: "Node: {{ item.item.key }} PSUs: {{ item | json_query('imdata[0].eqptCh.children[*].eqptPsuSlot.children[0].eqptPsu.attributes.ser') }}"
-  #   loop: "{{ ps_results.results }}"
-
-  - name: Add power supplies to node dictionary data
+  - name: Add power supply serials to node dictionary data
     set_fact:
       nodes: "{{ nodes | combine ({ item.item.key: {'psu-serials': item 
                 | json_query('imdata[0].eqptCh.children[*].eqptPsuSlot.children[0].eqptPsu.attributes.ser')} }
                 , recursive=True ) }}"
-    loop: "{{ ps_results.results }}"
+    loop: '{{ ps_results.results }}'
+    no_log: True
+
+  - name: Get fan trays
+    aci_rest:
+      hostname: '{{ inventory_hostname }}'
+      username: '{{ script_user }}'
+      private_key: '{{ keyfile }}'
+      validate_certs: no
+      method: get
+      path: '/api/node/mo/{{ item.key }}/sys/ch.json?rsp-subtree=full&rsp-subtree-class=eqptFt'
+    loop: '{{ nodes | dict2items }}'
+    register: ft_results
+
+  - name: Add fan tray serials to node dictionary data
+    set_fact:
+      nodes: "{{ nodes | combine ({ item.item.key: {'ft-serials': item 
+                | json_query('imdata[0].eqptCh.children[*].eqptFtSlot.children[0].eqptFt.attributes.ser')} }
+                , recursive=True ) }}"
+    loop: '{{ ft_results.results }}'
+    when: item.item.value.id | int > 100
+    no_log: True
 
   - name: Print node dictionary
     debug:
